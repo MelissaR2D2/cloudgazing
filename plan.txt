@@ -1,0 +1,20 @@
+Plan:
+- get dataset loaded
+- get U-Net going
+- run images through pretrained ImageNet ResNet, get confidences, make graphs, this is your baseline
+    - compare/contrast with running cloud images vs. actual segmentation map through it
+- second baseline idea: segmentation network pretrained on cats, dogs, etc
+- remember to pipe results to output file
+
+Some dumb ideas:
+- something that calculates similarity between cloud image and average of each category. Like distance from cluster
+    - this wouldn't help outline the shape, though
+- unsupervised segmentation learning:
+    - problem is, we need the network to have strong shape priors
+    - we could take segmentation maps of other objects and reward it when map is similar to 1 of the objects,
+        would have to balance with overlap with real segmentation map
+    - maybe we'd have 3 classes: not cloud, cloud, and cloud object, and it gets points for outlining the cloud correctly
+    - and then drawing a shape in the cloud. Problem with that is it could just draw anywhere within the cloud
+    - it's essentially a segmentation problem within a segmentation problem, the problem is we don't have a labeled dataset to learn on
+    - we can just run it through the 1st segmentation network to detect clouds, then create a mask to get rid of the background
+     and run it through the 2nd segmentation network to detect objects. 2nd network will be pre-trained. If that's not enough, we can do unsupervised learning
