@@ -1,27 +1,35 @@
 import torch
 from torch.utils.data import Dataset, DataLoader
+import torchvision
+from torchvision import transforms, utils, datasets
 import glob
 import os
 import random
 
 
-class DataLoaderSegmentation(Dataset):
-    def __init__(self, folder_path):
-        super(DataLoaderSegmentation, self).__init__()
-        self.img_files = glob.glob(os.path.join(folder_path, 'image', '*.png'))
-        self.mask_files = []
-        for img_path in self.img_files:
-            self.mask_files.append(os.path.join(folder_path, 'mask', os.path.basename(img_path)))
+""""
+Loads SWIMSEG train or test images
+Default size is 3x300x300 for images and 300x300 for masks
+"""
+class SWIMGSEG(Dataset):
+    def __init__(self, folder_path="/Users/student/Documents/College/swimseg_split/", train=True):
+        super(SWIMGSEG, self).__init__()
+        subfolder = 'train' if train else 'test'
+        self.img_folder = torchvision.datasets.ImageFolder(os.path.join(folder_path, subfolder, 'images'),
+                                                           transform=transforms.Compose(
+                                                               [
+                                                                   transforms.ToTensor()]))  # transforms.Resize(size) if needed
+        self.mask_folder = torchvision.datasets.ImageFolder(os.path.join(folder_path, subfolder, 'masks'),
+                                                            transform=transforms.Compose(
+                                                                [transforms.ToTensor()]))
 
     def __getitem__(self, index):
-        img_path = self.img_files[index]
-        mask_path = self.mask_files[index]
-        data = None  # use opencv or pil read image using img_path
-        label = None  # use opencv or pil read label  using mask_path
-        return torch.from_numpy(data).float(), torch.from_numpy(label).float()
+        img = self.img_folder[index]
+        label = self.mask_folder[index]
+        return img[0], label[0][0]
 
     def __len__(self):
-        return len(self.img_files)
+        return len(self.img_folder)
 
 
 """
@@ -29,8 +37,6 @@ Splits data into train and test sets.
 Images are set up like this:
 
 """
-
-
 def print_dataset_statistics():
     img_names_len = len(glob.glob("/Users/student/Documents/College/swimseg/images/d*"))
     mask_names_len = len(glob.glob("/Users/student/Documents/College/swimseg/masks/d*"))
@@ -47,8 +53,6 @@ test:
 - 203 unique images (1218 total)
 File names: d0000
 """
-
-
 def split_dataset():
     unique = 1013
     test_total = 203
@@ -100,4 +104,8 @@ def split_dataset():
 
 if __name__ == "__main__":
     # split_dataset()
-    pass
+    dataset = SWIMGSEG()
+    print(len(dataset))  # should be 4860
+    img, mask = dataset.__getitem__(0)
+    print(img.size())
+    print(mask.size())
