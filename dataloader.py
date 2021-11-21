@@ -5,6 +5,97 @@ from torchvision import transforms, utils, datasets
 import glob
 import os
 import random
+import numpy as np
+from PIL import Image
+
+
+
+VOC_CLASSES = [
+    "background",
+    "aeroplane",
+    "bicycle",
+    "bird",
+    "boat",
+    "bottle",
+    "bus",
+    "car",
+    "cat",
+    "chair",
+    "cow",
+    "diningtable",
+    "dog",
+    "horse",
+    "motorbike",
+    "person",
+    "potted plant",
+    "sheep",
+    "sofa",
+    "train",
+    "tv/monitor",
+    "outline"
+]
+
+
+VOC_COLORMAP = {
+    (0, 0, 0): 0,
+    (128, 0, 0): 1,
+    (0, 128, 0): 2,
+    (128, 128, 0): 3,
+    (0, 0, 128): 4,
+    (128, 0, 128): 5,
+    (0, 128, 128): 6,
+    (128, 128, 128): 7,
+    (64, 0, 0): 8,
+    (192, 0, 0): 9,
+    (64, 128, 0): 10,
+    (192, 128, 0): 11,
+    (64, 0, 128): 12,
+    (192, 0, 128): 13,
+    (64, 128, 128): 14,
+    (192, 128, 128): 15,
+    (0, 64, 0): 16,
+    (128, 64, 0): 17,
+    (0, 192, 0): 18,
+    (128, 192, 0): 19,
+    (0, 64, 128): 20,
+    (224, 224, 192): 21
+}
+
+
+# plan: transform target into [size x size] class values. Do it by subclassing VOCSegmentation
+class VOC(datasets.VOCSegmentation):
+    def __init__(self, root="/Users/student/Documents/College/", image_set="train", download=False, image_size=256):
+        img_tfms = transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+            transforms.ToTensor(),
+        ])
+        target_tfms = transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+        ])
+        super().__init__(root=root, image_set=image_set, download=download, transform=img_tfms, target_transform=target_tfms)
+
+
+    @staticmethod
+    def _convert_to_segmentation_mask(mask):
+        # This function converts a mask from the Pascal VOC format to the format required by Pytorch.
+        #
+        # Pascal VOC uses an RGB image to encode the segmentation mask for that image. RGB values of a pixel
+        # encode the pixel's class.
+        #
+        # I want the mask to be of shape [height x width] and contain the class number of that pixel
+        mask = mask.convert('RGB')
+        mask = transforms.PILToTensor()(mask)
+        height, width = mask.size()[1:]
+        segmentation_mask = np.zeros((height, width))
+        for h_idx in range(height):
+            for w_idx in range(width):
+                pixel = tuple(mask[:, h_idx, w_idx].detach().numpy())
+                segmentation_mask[h_idx, w_idx] = VOC_COLORMAP[pixel]
+        return torch.from_numpy(segmentation_mask)
+
+    def __getitem__(self, index):
+        image, mask = super(VOC, self).__getitem__(index)
+        return image, self._convert_to_segmentation_mask(mask)
 
 
 """"
@@ -104,8 +195,12 @@ def split_dataset():
 
 if __name__ == "__main__":
     # split_dataset()
-    dataset = SWIMGSEG()
+    """target = Image.open("/Users/student/Documents/College/VOCdevkit/VOC2012/SegmentationClass/2007_000032.png")
+    print(len(target.getbands()))
+    tensor = transforms.PILToTensor()(target)
+    print(tensor.size())"""
+    dataset = VOC()
     print(len(dataset))  # should be 4860
-    img, mask = dataset.__getitem__(0)
+    img, m = dataset.__getitem__(0)
     print(img.size())
-    print(mask.size())
+    print(m.size())

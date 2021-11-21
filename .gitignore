@@ -1,3 +1,5 @@
 355Lab/
 .idea/
 results/
+.DS_Store
+__pycache__/
