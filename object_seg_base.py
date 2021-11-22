@@ -7,6 +7,7 @@ import torch.optim as optim
 import numpy as np
 import train
 import dataloader
+import argparse
 
 """
 File for testing pretrained object segmentation networks on images of clouds.
@@ -38,6 +39,15 @@ VOC_CLASSES = [
     "tv/monitor",
     "outline"
 ]
+
+cuda = False
+parser = argparse.ArgumentParser()
+parser.add_argument('--cuda', dest='cuda', action='store_true')
+parser.set_defaults(cuda=False)
+parser.parse_args()
+
+if cuda:
+    assert torch.cuda.is_available()
 
 # params
 model_name = "UNetVOCBase"
@@ -77,7 +87,7 @@ print(len(val_dataset))
 print(len(val_loader))
 # train
 train_losses, train_accs, val_losses, val_accs = train.train(model, train_loader, val_loader, objective,
-                                                             optimizer, epochs, batch_size, image_size)
+                                                             optimizer, epochs, batch_size, image_size, cuda)
 
 for param in ["train_losses", "train_accs", "val_losses", "val_accs"]:
     params[param] = eval(param)
