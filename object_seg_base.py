@@ -40,14 +40,16 @@ VOC_CLASSES = [
     "outline"
 ]
 
-cuda = False
 parser = argparse.ArgumentParser()
 parser.add_argument('--cuda', dest='cuda', action='store_true')
-parser.set_defaults(cuda=False)
-parser.parse_args()
+args = parser.parse_args()
+cuda = args.cuda
 
 if cuda:
+    print("using cuda")
     assert torch.cuda.is_available()
+else:
+    print("using cpu")
 
 # params
 model_name = "UNetVOCBase"
