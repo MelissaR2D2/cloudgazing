@@ -111,16 +111,18 @@ Loads SWIMSEG train or test images
 Default size is 3x300x300 for images and 300x300 for masks
 """
 class SWIMGSEG(Dataset):
-    def __init__(self, folder_path="/Users/student/Documents/College/swimseg_split/", train=True):
+    def __init__(self, folder_path="/Users/student/Documents/College/swimseg_split/", train=True, image_size=300):
         super(SWIMGSEG, self).__init__()
         subfolder = 'train' if train else 'test'
         self.img_folder = torchvision.datasets.ImageFolder(os.path.join(folder_path, subfolder, 'images'),
                                                            transform=transforms.Compose(
                                                                [
-                                                                   transforms.ToTensor()]))  # transforms.Resize(size) if needed
+                                                                   transforms.ToTensor(),
+                                                                   transforms.Resize(image_size)]))  # transforms.Resize(size) if needed
         self.mask_folder = torchvision.datasets.ImageFolder(os.path.join(folder_path, subfolder, 'masks'),
                                                             transform=transforms.Compose(
-                                                                [transforms.ToTensor()]))
+                                                                [transforms.ToTensor(),
+                                                                 transforms.Resize(image_size)]))
 
     def __getitem__(self, index):
         img = self.img_folder[index]

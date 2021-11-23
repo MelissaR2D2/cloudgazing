@@ -28,6 +28,7 @@ def validate(model, val_loader, objective, batch_size, img_size=300, cuda=False)
             val_loss_list.append(objective(val_y_hat, val_y_truth.squeeze().long()).item())
             val_pred = decide(val_y_hat)
             val_acc_list.append(np.sum(val_pred == val_y_truth.detach().cpu().numpy()) / (img_size * img_size * batch_size))
+            print("batch")
     return val_loss_list, val_acc_list
 
 def train(model, train_loader, val_loader, objective, optimizer, epochs, batch_size, img_size=300, cuda=False):
@@ -42,7 +43,7 @@ def train(model, train_loader, val_loader, objective, optimizer, epochs, batch_s
     for epoch in range(epochs):
         # validation
         if not debug:
-            val_loss, val_acc = validate(model, val_loader, objective, batch_size, cuda=cuda)
+            val_loss, val_acc = validate(model, val_loader, objective, batch_size, img_size=img_size, cuda=cuda)
             val_losses.append(sum(val_loss) / float(len(val_loss)))
             val_accs.append(sum(val_acc) / float(len(val_acc)))
             print('epoch {} validation: val_loss: {:.4f}, val_acc: {:.4f}'.format(epoch, val_losses[-1], val_accs[-1]))
@@ -68,7 +69,7 @@ def train(model, train_loader, val_loader, objective, optimizer, epochs, batch_s
         print('epoch {} training: last train loss: {:.4f}, last train acc: {:.4f}'.format(epoch, train_losses[-1],
                                                                                       train_accs[-1]))    # final validation
     if not debug:
-        val_loss, val_acc = validate(model, val_loader, objective, batch_size, cuda=cuda)
+        val_loss, val_acc = validate(model, val_loader, objective, batch_size, img_size=img_size, cuda=cuda)
         val_losses.append(sum(val_loss) / float(len(val_loss)))
         val_accs.append(sum(val_acc) / float(len(val_acc)))
         print('final validation: val_loss: {:.4f}, val_acc:{:.4f}'.format(val_losses[-1], val_accs[-1]))

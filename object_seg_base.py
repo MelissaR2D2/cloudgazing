@@ -94,4 +94,4 @@ train_losses, train_accs, val_losses, val_accs = train.train(model, train_loader
 for param in ["train_losses", "train_accs", "val_losses", "val_accs"]:
     params[param] = eval(param)
 
-train.save_train_results(model, params, "/Users/student/PycharmProjects/CS474FinalProject/results/")
+train.save_train_results(model, params, "./results/")
