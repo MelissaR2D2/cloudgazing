@@ -6,9 +6,7 @@ import glob
 import os
 import random
 import numpy as np
-from PIL import Image
-
-
+import cv2
 
 VOC_CLASSES = [
     "background",
@@ -61,7 +59,6 @@ VOC_COLORMAP = {
     (224, 224, 192): 21
 }
 
-
 # plan: transform target into [size x size] class values. Do it by subclassing VOCSegmentation
 class VOC(datasets.VOCSegmentation):
     def __init__(self, root="/Users/student/Documents/College/", image_set="train", download=False, image_size=256):
@@ -74,24 +71,35 @@ class VOC(datasets.VOCSegmentation):
         ])
         super().__init__(root=root, image_set=image_set, download=download, transform=img_tfms, target_transform=target_tfms)
 
+    @staticmethod
+    def _make_segment_mask(color_mask):
+        color_table = np.zeros((256, 1, 3), dtype=np.uint8)
+        for key in VOC_COLORMAP:
+            color_table[key] = VOC_COLORMAP[key]
+
+        colour_mask = cv2.applyColorMap(color_mask, color_table)
+
+        return colour_mask
 
     @staticmethod
-    def _convert_to_segmentation_mask(mask):
+    def _convert_to_segmentation_mask(color_mask):
         # This function converts a mask from the Pascal VOC format to the format required by Pytorch.
         #
         # Pascal VOC uses an RGB image to encode the segmentation mask for that image. RGB values of a pixel
         # encode the pixel's class.
         #
         # I want the mask to be of shape [height x width] and contain the class number of that pixel
-        mask = mask.convert('RGB')
-        mask = transforms.PILToTensor()(mask)
-        height, width = mask.size()[1:]
-        segmentation_mask = np.zeros((height, width))
-        for h_idx in range(height):
-            for w_idx in range(width):
-                pixel = tuple(mask[:, h_idx, w_idx].detach().numpy())
-                segmentation_mask[h_idx, w_idx] = VOC_COLORMAP[pixel]
-        return torch.from_numpy(segmentation_mask)
+        color_mask = color_mask.convert('RGB')
+        color_mask = transforms.PILToTensor()(color_mask)
+        height, width = color_mask.size()[1:]
+
+        mask = torch.empty(height, width, dtype=torch.long)
+        for k in VOC_COLORMAP:
+            # Get all indices for current class
+            idx = (color_mask == torch.tensor(k, dtype=torch.uint8).unsqueeze(1).unsqueeze(2))
+            validx = (idx.sum(0) == 3)  # Check that all channels match
+            mask[validx] = torch.tensor(VOC_COLORMAP[k], dtype=torch.long)
+        return mask
 
     def __getitem__(self, index):
         image, mask = super(VOC, self).__getitem__(index)
