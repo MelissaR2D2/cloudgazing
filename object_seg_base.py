@@ -42,8 +42,10 @@ VOC_CLASSES = [
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--cuda', dest='cuda', action='store_true')
+parser.add_argument('--grayscale', dest='grayscale', action='store_true')
 args = parser.parse_args()
 cuda = args.cuda
+grayscale = args.grayscale
 
 if cuda:
     print("using cuda")
@@ -51,8 +53,10 @@ if cuda:
 else:
     print("using cpu")
 
+print("Grayscale images: ", grayscale)
+
 # params
-model_name = "UNetVOCBase"
+model_name = "UNetVOCBaseGrayscale"
 image_size = 256
 batch_size = 24
 epochs = 10
@@ -61,21 +65,11 @@ params = {}
 for param in ["model_name", "image_size", "batch_size", "epochs", "learn_rate"]:
     params[param] = eval(param)
 
-img_tfms = transforms.Compose([
-    transforms.Resize((image_size, image_size)),
-    transforms.ToTensor(),
-])
-
-# plan: transform target into [size x size] class values. Do it by subclassing VOCSegmentation
-
-target_tfms = transforms.Compose([
-    transforms.PILToTensor(),
-    transforms.Resize((image_size, image_size)),
-])
+print(model_name)
 
 # Data
-train_dataset = dataloader.VOC("/Users/student/Documents/College/", image_set='train', image_size=image_size)
-val_dataset = dataloader.VOC("/Users/student/Documents/College/", image_set='val', image_size=image_size)
+train_dataset = dataloader.VOC("/Users/student/Documents/College/", image_set='train', image_size=image_size, grayscale=grayscale)
+val_dataset = dataloader.VOC("/Users/student/Documents/College/", image_set='val', image_size=image_size, grayscale=grayscale)
 train_loader = DataLoader(train_dataset, batch_size=batch_size, pin_memory=True, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, pin_memory=True)
 

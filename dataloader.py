@@ -61,11 +61,18 @@ VOC_COLORMAP = {
 
 # plan: transform target into [size x size] class values. Do it by subclassing VOCSegmentation
 class VOC(datasets.VOCSegmentation):
-    def __init__(self, root="/Users/student/Documents/College/", image_set="train", download=False, image_size=256):
-        img_tfms = transforms.Compose([
-            transforms.Resize((image_size, image_size)),
-            transforms.ToTensor(),
-        ])
+    def __init__(self, root="/Users/student/Documents/College/", image_set="train", download=False, image_size=256, grayscale=False):
+        if grayscale:
+            img_tfms = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.Grayscale(num_output_channels=3),
+                transforms.ToTensor(),
+            ])
+        else:
+            img_tfms = transforms.Compose([
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+            ])
         target_tfms = transforms.Compose([
             transforms.Resize((image_size, image_size)),
         ])
