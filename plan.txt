@@ -18,3 +18,19 @@ Some dumb ideas:
     - it's essentially a segmentation problem within a segmentation problem, the problem is we don't have a labeled dataset to learn on
     - we can just run it through the 1st segmentation network to detect clouds, then create a mask to get rid of the background
      and run it through the 2nd segmentation network to detect objects. 2nd network will be pre-trained. If that's not enough, we can do unsupervised learning
+
+Unsupervised learning:
+- constraints:
+    - pixels with similar features should be assigned same label
+    - spatially contiguous pixels should be assigned same label
+    - should have 2 unique labels per image of 22 labels:
+        - 1 is background (label 0) and the other is one of the classes
+
+   - balance training: supervised & unsupervised
+    - unsupervised has loss function just based on feature similarity & continuity
+   - could also turn images grayscale to focus on shapes
+   - Think of metrics to compare different networks
+    - # of distinct objects in scene
+    - does it stick solely to cloud/not cloud, or do objects cross that boundary
+    - non-background objects should not overlap
+    - average object size
